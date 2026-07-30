@@ -33,9 +33,9 @@ source /cvmfs/sft.cern.ch/lcg/views/LCG_104/x86_64-el9-gcc13-opt/setup.sh
 
 ```bash
 cd /path/where/you/want/the/tools
-wget https://launchpad.net/mg5amcnlo/2.0/2.9.x/+download/MG5_aMC_v2.9.18.tar.gz
-tar -xzf MG5_aMC_v2.9.18.tar.gz
-cd MG5_aMC_v2_9_18
+wget https://launchpad.net/mg5amcnlo/3.0/3.6.x/+download/MG5_aMC_v3.5.13.tar.gz
+tar -xzf MG5_aMC_v3.5.13.tar.gz
+cd MG5_aMC_v3_5_13
 
 cat > install_mg5.dat <<'MG5'
 install pythia8
@@ -72,12 +72,12 @@ The production script expects `MinBias_100k.pileup` to be available directly und
 Edit the paths near the top of `/home/runner/work/jetclass2_generation/jetclass2_generation/run.sh`:
 
 ```bash
-MG5_PATH=/absolute/path/to/MG5_aMC_v2_9_18
+MG5_PATH=/absolute/path/to/MG5_aMC_v3_5_13
 DELPHES_PATH=/absolute/path/to/Delphes-3.5.0
 OUTPUT_PATH=/absolute/path/to/output_dir
 LHAPDFCONFIG=/absolute/path/to/lhapdf-config
 LHAPDF_DATA_PATH=/absolute/path/to/share/LHAPDF
-PYTHIA8DATA=/absolute/path/to/MG5_aMC_v2_9_18/HEPTools/pythia8/share/Pythia8/xmldoc
+PYTHIA8DATA=/absolute/path/to/MG5_aMC_v3_5_13/HEPTools/pythia8/share/Pythia8/xmldoc
 ```
 
 Optional override:

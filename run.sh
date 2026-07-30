@@ -41,14 +41,14 @@ fi
 # Setup environment
 
 # ============ basic configuration ============
-MG5_PATH=/PATH/TO/MG5_aMC_v2_9_18
+MG5_PATH=/PATH/TO/MG5_aMC_v3_5_13
 DELPHES_PATH=/PATH/TO/Delphes-3.5.0
 OUTPUT_PATH=/PATH/TO/OUTPUT_DIR
 
 ## some env variables are required by the softwares
 LHAPDFCONFIG=/PATH/TO/lhapdf-config
 LHAPDF_DATA_PATH=/PATH/TO/share/LHAPDF
-PYTHIA8DATA=/PATH/TO/MG5_aMC_v2_9_18/HEPTools/pythia8/share/Pythia8/xmldoc
+PYTHIA8DATA=/PATH/TO/MG5_aMC_v3_5_13/HEPTools/pythia8/share/Pythia8/xmldoc
 
 ## fixed configuration
 GENCFG_PATH="$SCRIPT_DIR/gen_configs"
