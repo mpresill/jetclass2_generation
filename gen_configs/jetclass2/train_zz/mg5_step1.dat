@@ -1,0 +1,5 @@
+set run_mode 0
+
+import model sm
+generate p p > z z
+output proc
