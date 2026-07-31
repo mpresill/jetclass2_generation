@@ -69,7 +69,7 @@ The production script expects `MinBias_100k.pileup` to be available directly und
 
 ## Configure `run.sh`
 
-Edit the paths near the top of `/home/runner/work/jetclass2_generation/jetclass2_generation/run.sh`:
+From the repository root, edit the paths near the top of `run.sh`:
 
 ```bash
 MG5_PATH=/absolute/path/to/MG5_aMC_v3_5_13
@@ -90,17 +90,35 @@ If `DELPHES_CARD_PATH` is not set, the script uses `delphes_cards/delphes_card_C
 
 ## Run MadGraph + Pythia + Delphes
 
-From anywhere on the machine:
+From the repository root:
 
 ```bash
-/home/runner/work/jetclass2_generation/jetclass2_generation/run.sh [process_name] [num_tot_events] [num_events_per_gen_step] [job_num]
+cd /home/mpresill-cern/work/users/mpresill-cern/jetclass2_generation
+./run.sh [process_name] [num_tot_events] [num_events_per_gen_step] [job_num]
 ```
 
 Examples:
 
 ```bash
-/home/runner/work/jetclass2_generation/jetclass2_generation/run.sh jetclass2/train_higgs2p 100 50 0
-/home/runner/work/jetclass2_generation/jetclass2_generation/run.sh jetclass2/train_zz 100 50 0
+cd /home/mpresill-cern/work/users/mpresill-cern/jetclass2_generation
+./run.sh jetclass2/train_higgs2p 100 50 0
+./run.sh jetclass2/train_zz 100 50 0
+```
+
+### Run 3 quick recipe (`jetclass2/train_zz`)
+
+The `jetclass2/train_zz` config in this repository is already set for:
+
+- 13.6 TeV proton-proton collisions (`ebeam1=6800`, `ebeam2=6800`)
+- NNPDF3.1 LO (`lhaid=315000`)
+- MadSpin Z decays (configured in `mg5_step2_madspin_card_templ.dat`)
+
+Minimal commands:
+
+```bash
+cd /home/mpresill-cern/work/users/mpresill-cern/jetclass2_generation
+# edit run.sh once: MG5_PATH, DELPHES_PATH, OUTPUT_PATH, LHAPDFCONFIG, LHAPDF_DATA_PATH, PYTHIA8DATA
+./run.sh jetclass2/train_zz 100000 100 0
 ```
 
 Important runtime notes:
@@ -118,7 +136,7 @@ Important runtime notes:
 | `jetclass2/train_higgspm2p` | `./run.sh jetclass2/train_higgspm2p 100000 100 [job_num]` | Charged resonance pair prototype |
 | `jetclass2/train_higgs4p` | `./run.sh jetclass2/train_higgs4p 100000 100 [job_num]` | 4-parton resonance prototype |
 | `jetclass2/train_qcd` | `./run.sh jetclass2/train_qcd 100000 100 [job_num]` | Pythia8-only QCD production |
-| `jetclass2/train_zz` | `./run.sh jetclass2/train_zz 100000 100 [job_num]` | New Standard Model `pp -> ZZ` prototype at 13 TeV |
+| `jetclass2/train_zz` | `./run.sh jetclass2/train_zz 100000 100 [job_num]` | Standard Model `pp -> ZZ` prototype at 13.6 TeV with MadSpin Z decays |
 
 ## How process configs are structured
 
@@ -131,31 +149,33 @@ mg5_params.dat        # Optional parameter scan file; one line is sampled per ba
 py8.dat               # Pythia8 card used by MG5aMC_PY8_interface
 ```
 
-The default wrapper is `/home/runner/work/jetclass2_generation/jetclass2_generation/gen_configs/run_gen_default.sh`.
+The default wrapper is `gen_configs/run_gen_default.sh`.
 
 ## New `pp -> ZZ` prototype
 
 The prototype configuration is located in:
 
 ```text
-/home/runner/work/jetclass2_generation/jetclass2_generation/gen_configs/jetclass2/train_zz
+gen_configs/jetclass2/train_zz
 ```
 
 It uses:
 
 - `import model sm`
 - `generate p p > z z`
-- `set ebeam1 6500` and `set ebeam2 6500` for 13 TeV proton-proton collisions
-- default Pythia8 Standard Model `Z` decays
+- `set ebeam1 6800` and `set ebeam2 6800` for 13.6 TeV proton-proton collisions
+- `set lhaid 315000` (NNPDF3.1 LO via LHAPDF)
+- `madspin=ON` with a dedicated MadSpin card in `mg5_step2_madspin_card_templ.dat`
+- Z decays configured in MadSpin with leptonic and hadronic channels (`z -> l+ l-` and `z -> q q~`) rather than in the Pythia card
 
 This makes it a simple starting point for LHC diboson studies on top of the existing JetClass-II workflow.
 
 ## Produce ntuples from Delphes output
 
-The Delphes analyzer lives in `/home/runner/work/jetclass2_generation/jetclass2_generation/delphes_analyzers`.
+The Delphes analyzer lives in `delphes_analyzers`.
 
 ```bash
-cd /home/runner/work/jetclass2_generation/jetclass2_generation/delphes_analyzers
+cd /home/mpresill-cern/work/users/mpresill-cern/jetclass2_generation/delphes_analyzers
 source /cvmfs/sft.cern.ch/lcg/views/LCG_104/x86_64-el9-gcc13-opt/setup.sh
 export ROOT_INCLUDE_PATH=$ROOT_INCLUDE_PATH:/cvmfs/sft.cern.ch/lcg/releases/delphes/3.5.1pre09-9fe9c/x86_64-el9-gcc13-opt/include
 
