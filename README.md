@@ -93,14 +93,14 @@ If `DELPHES_CARD_PATH` is not set, the script uses `delphes_cards/delphes_card_C
 From the repository root:
 
 ```bash
-cd /home/mpresill-cern/work/users/mpresill-cern/jetclass2_generation
+cd jetclass2_generation
 ./run.sh [process_name] [num_tot_events] [num_events_per_gen_step] [job_num]
 ```
 
 Examples:
 
 ```bash
-cd /home/mpresill-cern/work/users/mpresill-cern/jetclass2_generation
+cd jetclass2_generation
 ./run.sh jetclass2/train_higgs2p 100 50 0
 ./run.sh jetclass2/train_zz 100 50 0
 ```
@@ -116,7 +116,7 @@ The `jetclass2/train_zz` config in this repository is already set for:
 Minimal commands:
 
 ```bash
-cd /home/mpresill-cern/work/users/mpresill-cern/jetclass2_generation
+cd jetclass2_generation
 # edit run.sh once: MG5_PATH, DELPHES_PATH, OUTPUT_PATH, LHAPDFCONFIG, LHAPDF_DATA_PATH, PYTHIA8DATA
 ./run.sh jetclass2/train_zz 100000 100 0
 ```
@@ -175,7 +175,7 @@ This makes it a simple starting point for LHC diboson studies on top of the exis
 The Delphes analyzer lives in `delphes_analyzers`.
 
 ```bash
-cd /home/mpresill-cern/work/users/mpresill-cern/jetclass2_generation/delphes_analyzers
+cd jetclass2_generation/delphes_analyzers
 source /cvmfs/sft.cern.ch/lcg/views/LCG_104/x86_64-el9-gcc13-opt/setup.sh
 export ROOT_INCLUDE_PATH=$ROOT_INCLUDE_PATH:/cvmfs/sft.cern.ch/lcg/releases/delphes/3.5.1pre09-9fe9c/x86_64-el9-gcc13-opt/include
 
