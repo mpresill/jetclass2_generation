@@ -42,6 +42,11 @@ if [ -f mg5_step2_run_card_templ.dat ]; then
     cp -f mg5_step2_run_card_templ.dat $MDIR/Cards/run_card.dat
 fi
 
+# if mg5_step2_madspin_card_templ exists, copy it to the MG dir
+if [ -f mg5_step2_madspin_card_templ.dat ]; then
+    cp -f mg5_step2_madspin_card_templ.dat $MDIR/Cards/madspin_card.dat
+fi
+
 ## generate MG events
 rm -rf $MDIR/Events/*
 cat mg5_step2.dat | $MDIR/bin/generate_events pilotrun
