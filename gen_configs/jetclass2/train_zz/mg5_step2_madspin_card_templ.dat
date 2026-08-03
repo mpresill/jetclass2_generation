@@ -1,10 +1,6 @@
 set max_weight_ps_point 400
 set spinmode onshell
 
-define lp = e+ mu+ ta+
-define lm = e- mu- ta-
-define q = u d c s b
-define qx = u~ d~ c~ s~ b~
-decay z > lp lm
-decay z > q qx
+decay z{0} > l+ l-
+decay z{0} > j j 
 launch

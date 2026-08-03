@@ -50,6 +50,23 @@ MG5
 
 This is installing a series of packaged within Madgraph software, which will be placed (for my examples) in `/afs/cern.ch/work/m/mpresill/private/tools/MG5_aMC_v3_5_12/HEPTools/`
 
+#### Required patch for MadSpin
+
+MadGraph's standalone f2py Makefile templates call f2py with `--include-paths=<dir>`
+(single token). The f2py CLI shipped with numpy only recognizes the two-token form
+`--include-paths <dir>`; with the `=` form the path is silently dropped, and MadSpin's
+standalone spin-correlated decay matrix elements (needed whenever `madspin=ON` with
+`spinmode onshell`, e.g. the `jetclass2/train_zz` config) fail to compile with
+`error: unknown file type '' (from '--include-paths=...')`. Apply the fix once, right
+after installing:
+
+```bash
+./fix_mg5_madspin_f2py.sh /afs/cern.ch/work/m/mpresill/private/tools/MG5_aMC_v3_5_12
+```
+
+(from the repository root; the script is idempotent and safe to re-run, e.g. after
+re-downloading MG5).
+
 Notes (skip if not expert):
 
 - The existing JetClass-II resonance configs use the `2HDM` model.
