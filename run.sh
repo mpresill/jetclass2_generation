@@ -41,14 +41,14 @@ fi
 # Setup environment
 
 # ============ basic configuration ============
-MG5_PATH=/PATH/TO/MG5_aMC_v3_5_13
-DELPHES_PATH=/PATH/TO/Delphes-3.5.0
-OUTPUT_PATH=/PATH/TO/OUTPUT_DIR
+MG5_PATH=/afs/cern.ch/work/m/mpresill/private/tools/MG5_aMC_v3_5_12
+DELPHES_PATH=/afs/cern.ch/work/m/mpresill/private/tools/Delphes-3.5.0
+OUTPUT_PATH=/afs/cern.ch/work/m/mpresill/private/pilot-polarized-pnet/jet_class_test/jetclass2_generation/output
 
 ## some env variables are required by the softwares
-LHAPDFCONFIG=/PATH/TO/lhapdf-config
-LHAPDF_DATA_PATH=/PATH/TO/share/LHAPDF
-PYTHIA8DATA=/PATH/TO/MG5_aMC_v3_5_13/HEPTools/pythia8/share/Pythia8/xmldoc
+LHAPDFCONFIG=/afs/cern.ch/work/m/mpresill/private/tools/MG5_aMC_v3_5_12/HEPTools/lhapdf6_py3/bin/lhapdf-config
+LHAPDF_DATA_PATH=/afs/cern.ch/work/m/mpresill/private/tools/MG5_aMC_v3_5_12/HEPTools/lhapdf6_py3/share/LHAPDF
+PYTHIA8DATA=/afs/cern.ch/work/m/mpresill/private/tools/MG5_aMC_v3_5_12/HEPTools/pythia8/share/Pythia8/xmldoc
 
 ## fixed configuration
 GENCFG_PATH="$SCRIPT_DIR/gen_configs"

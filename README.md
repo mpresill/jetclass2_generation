@@ -32,10 +32,10 @@ source /cvmfs/sft.cern.ch/lcg/views/LCG_104/x86_64-el9-gcc13-opt/setup.sh
 ### 2. Install MadGraph + internal Pythia8/HepMC/LHAPDF
 
 ```bash
-cd /path/where/you/want/the/tools
-wget https://launchpad.net/mg5amcnlo/3.0/3.6.x/+download/MG5_aMC_v3.5.13.tar.gz
-tar -xzf MG5_aMC_v3.5.13.tar.gz
-cd MG5_aMC_v3_5_13
+cd /path/where/you/want/the/tools, e.g. /afs/cern.ch/work/m/mpresill/private/tools
+wget https://launchpadlibrarian.net/828125194/MG5_aMC_v3.5.12.tar.gz
+tar -xzf MG5_aMC_v3.5.12.tar.gz
+cd MG5_aMC_v3_5_12
 
 cat > install_mg5.dat <<'MG5'
 install pythia8
@@ -48,7 +48,9 @@ MG5
 ./bin/mg5_aMC install_mg5.dat
 ```
 
-Notes:
+This is installing a series of packaged within Madgraph software, which will be placed (for my examples) in `/afs/cern.ch/work/m/mpresill/private/tools/MG5_aMC_v3_5_12/HEPTools/`
+
+Notes (skip if not expert):
 
 - The existing JetClass-II resonance configs use the `2HDM` model.
 - The provided `pp -> ZZ` prototype added in this repository uses the Standard Model (`import model sm`) and does not need any extra UFO model.
@@ -57,7 +59,7 @@ Notes:
 ### 3. Install Delphes
 
 ```bash
-cd /path/where/you/want/the/tools
+cd /path/where/you/want/the/tools , e.g. /afs/cern.ch/work/m/mpresill/private/tools 
 wget http://cp3.irmp.ucl.ac.be/downloads/Delphes-3.5.0.tar.gz
 tar -xzf Delphes-3.5.0.tar.gz
 cd Delphes-3.5.0
@@ -65,20 +67,21 @@ make -j"$(nproc)"
 ln -sf /eos/cms/store/group/upgrade/delphes/PhaseII/MinBias_100k.pileup MinBias_100k.pileup
 ```
 
-The production script expects `MinBias_100k.pileup` to be available directly under `${DELPHES_PATH}`.
+The production script expects `MinBias_100k.pileup` to be available directly under `${DELPHES_PATH}`, so if you don't get errors from the last command it's just fine.
 
 ## Configure `run.sh`
 
-From the repository root, edit the paths near the top of `run.sh`:
+From the repository root, edit the paths near the top of `run.sh`.
+This is the example frmo my installation path:
 
 ```bash
-MG5_PATH=/absolute/path/to/MG5_aMC_v3_5_13
-DELPHES_PATH=/absolute/path/to/Delphes-3.5.0
-OUTPUT_PATH=/absolute/path/to/output_dir
-LHAPDFCONFIG=/absolute/path/to/lhapdf-config
-LHAPDF_DATA_PATH=/absolute/path/to/share/LHAPDF
-PYTHIA8DATA=/absolute/path/to/MG5_aMC_v3_5_13/HEPTools/pythia8/share/Pythia8/xmldoc
-```
+G5_PATH=/afs/cern.ch/work/m/mpresill/private/tools/MG5_aMC_v3_5_12
+DELPHES_PATH=/afs/cern.ch/work/m/mpresill/private/tools/Delphes-3.5.0
+OUTPUT_PATH=/afs/cern.ch/work/m/mpresill/private/pilot-polarized-pnet/jet_class_test/jetclass2_generation/output
+LHAPDFCONFIG=/afs/cern.ch/work/m/mpresill/private/tools/MG5_aMC_v3_5_12/HEPTools/lhapdf6_py3/bin/lhapdf-config
+LHAPDF_DATA_PATH=/afs/cern.ch/work/m/mpresill/private/tools/MG5_aMC_v3_5_12/HEPTools/lhapdf6_py3/share/LHAPDF
+PYTHIA8DATA=/afs/cern.ch/work/m/mpresill/private/tools/MG5_aMC_v3_5_12/HEPTools/pythia8/share/Pythia8/xmldoc```
+````
 
 Optional override:
 
