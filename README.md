@@ -1,75 +1,214 @@
 # JetClass-II dataset generation
 
-This repo provides the generation scripts for the [JetClass-II dataset](https://huggingface.co/datasets/jet-universe/jetclass2).
+This repository contains the event-generation and Delphes-production scripts used for the [JetClass-II dataset](https://huggingface.co/datasets/jet-universe/jetclass2).
 
-## Setup environment
+## Repository layout
 
-Please ensure the following software is configured:
-- [MadGraph5_aMC@NLO](https://launchpad.net/mg5amcnlo) and [Pythia8](https://pythia.org): Download MadGraph, and install Pythia within it. Download the [`2HDM`](https://feynrules.irmp.ucl.ac.be/wiki/2HDM) model within MadGraph.
-- [LHAPDF](https://lhapdf.hepforge.org): Install LHAPDF or configure an existing installation so that it can be interfaced with MadGraph.
-- [Delphes](http://cp3.irmp.ucl.ac.be/projects/delphes): Install Delphes or configure an existing installation. Link the pileup file `/eos/cms/store/group/upgrade/delphes/PhaseII/MinBias_100k.pileup` within this directory.
+```text
+.
+├── run.sh                  # End-to-end MadGraph/Pythia/Delphes production
+├── gen_configs/            # Process-specific generation configurations
+├── delphes_cards/          # Delphes detector cards
+└── delphes_analyzers/      # ROOT macro to convert Delphes ROOT files to ntuples
+```
 
-The script `run.sh` produces events via MadGraph + Pythia + Delphes in one go. Please configure the environment variables in the script.
+## Software needed on lxplus alma9
 
-## Run MadGraph + Pythia + Delphes in one go
- 
+The current scripts expect:
+
+- `MadGraph5_aMC@NLO` with `pythia8`, `hepmc`, and `lhapdf6` installed inside `HEPTools`
+- `LHAPDF6` PDF data available to MadGraph/Pythia
+- `Delphes`
+- `ROOT` for the ntuple-making step
+
+The examples below use EL9-compatible software on lxplus.
+
+### 1. Load a ROOT/compiler environment
+
 ```bash
-# Start the production by executing:
-# ./run.sh [process_name] [num_tot_events] [num_events_per_gen_step] [job_num]
+source /cvmfs/sft.cern.ch/lcg/views/LCG_104/x86_64-el9-gcc13-opt/setup.sh
+```
 
-# For example:
+### 2. Install MadGraph + internal Pythia8/HepMC/LHAPDF
+
+```bash
+cd /path/where/you/want/the/tools, e.g. /afs/cern.ch/work/m/mpresill/private/tools
+wget https://launchpadlibrarian.net/828125194/MG5_aMC_v3.5.12.tar.gz
+tar -xzf MG5_aMC_v3.5.12.tar.gz
+cd MG5_aMC_v3_5_12
+
+cat > install_mg5.dat <<'MG5'
+install pythia8
+install hepmc
+install lhapdf6
+install model 2HDM
+exit
+MG5
+
+./bin/mg5_aMC install_mg5.dat
+```
+
+This is installing a series of packaged within Madgraph software, which will be placed (for my examples) in `/afs/cern.ch/work/m/mpresill/private/tools/MG5_aMC_v3_5_12/HEPTools/`
+
+#### Required patch for MadSpin
+
+MadGraph's standalone f2py Makefile templates call f2py with `--include-paths=<dir>`
+(single token). The f2py CLI shipped with numpy only recognizes the two-token form
+`--include-paths <dir>`; with the `=` form the path is silently dropped, and MadSpin's
+standalone spin-correlated decay matrix elements (needed whenever `madspin=ON` with
+`spinmode onshell`, e.g. the `jetclass2/train_zz` config) fail to compile with
+`error: unknown file type '' (from '--include-paths=...')`. Apply the fix once, right
+after installing:
+
+```bash
+./fix_mg5_madspin_f2py.sh /afs/cern.ch/work/m/mpresill/private/tools/MG5_aMC_v3_5_12
+```
+
+(from the repository root; the script is idempotent and safe to re-run, e.g. after
+re-downloading MG5).
+
+Notes (skip if not expert):
+
+- The existing JetClass-II resonance configs use the `2HDM` model.
+- The provided `pp -> ZZ` prototype added in this repository uses the Standard Model (`import model sm`) and does not need any extra UFO model.
+- If you prefer a site-wide LHAPDF installation, point `LHAPDFCONFIG` and `LHAPDF_DATA_PATH` in `run.sh` to that installation instead of the internal MG5 copy.
+
+### 3. Install Delphes
+
+```bash
+cd /path/where/you/want/the/tools , e.g. /afs/cern.ch/work/m/mpresill/private/tools 
+wget http://cp3.irmp.ucl.ac.be/downloads/Delphes-3.5.0.tar.gz
+tar -xzf Delphes-3.5.0.tar.gz
+cd Delphes-3.5.0
+make -j"$(nproc)"
+ln -sf /eos/cms/store/group/upgrade/delphes/PhaseII/MinBias_100k.pileup MinBias_100k.pileup
+```
+
+The production script expects `MinBias_100k.pileup` to be available directly under `${DELPHES_PATH}`, so if you don't get errors from the last command it's just fine.
+
+## Configure `run.sh`
+
+From the repository root, edit the paths near the top of `run.sh`.
+This is the example frmo my installation path:
+
+```bash
+G5_PATH=/afs/cern.ch/work/m/mpresill/private/tools/MG5_aMC_v3_5_12
+DELPHES_PATH=/afs/cern.ch/work/m/mpresill/private/tools/Delphes-3.5.0
+OUTPUT_PATH=/afs/cern.ch/work/m/mpresill/private/pilot-polarized-pnet/jet_class_test/jetclass2_generation/output
+LHAPDFCONFIG=/afs/cern.ch/work/m/mpresill/private/tools/MG5_aMC_v3_5_12/HEPTools/lhapdf6_py3/bin/lhapdf-config
+LHAPDF_DATA_PATH=/afs/cern.ch/work/m/mpresill/private/tools/MG5_aMC_v3_5_12/HEPTools/lhapdf6_py3/share/LHAPDF
+PYTHIA8DATA=/afs/cern.ch/work/m/mpresill/private/tools/MG5_aMC_v3_5_12/HEPTools/pythia8/share/Pythia8/xmldoc```
+````
+
+Optional override:
+
+```bash
+export DELPHES_CARD_PATH=/absolute/path/to/custom_delphes_card.tcl
+```
+
+If `DELPHES_CARD_PATH` is not set, the script uses `delphes_cards/delphes_card_CMS_JetClassII_onlyFatJet.tcl`.
+
+## Run MadGraph + Pythia + Delphes
+
+From the repository root:
+
+```bash
+cd jetclass2_generation
+./run.sh [process_name] [num_tot_events] [num_events_per_gen_step] [job_num]
+```
+
+Examples:
+
+```bash
+cd jetclass2_generation
 ./run.sh jetclass2/train_higgs2p 100 50 0
+./run.sh jetclass2/train_zz 100 50 0
 ```
 
-<details>
-  <summary>Expand to see full setup for JetClass-II production.</summary>
+### Run 3 quick recipe (`jetclass2/train_zz`)
 
-| Process | Command |
-| --- | --- |
-| **`Res2P`** (neutral $X$) | `./run.sh jetclass2/train_higgs2p 100000 100 [job_num]`, `[job_num]` ranges from 0–191 |
-| **`Res2P`** (charged $X$) | `./run.sh jetclass2/train_higgspm2p 100000 100 [job_num]`, `[job_num]` ranges from 0–143 |
-| **`Res34P`** | `./run.sh jetclass2/train_higgs4p 100000 100 [job_num]`, `[job_num]` ranges from 0–1439 |
-| **`QCD`:** | `./run.sh jetclass2/train_qcd 100000 100 [job_num]`, `[job_num]` ranges from 0–239 |
+The `jetclass2/train_zz` config in this repository is already set for:
 
-</details>
+- 13.6 TeV proton-proton collisions (`ebeam1=6800`, `ebeam2=6800`)
+- NNPDF3.1 LO (`lhaid=315000`)
+- MadSpin Z decays (configured in `mg5_step2_madspin_card_templ.dat`)
 
-## MadGraph + Pythia step
-
-The MadGraph + Pythia job is configured by `[process_name]`, which takes a subdirectory path in [`gen_configs`](gen_configs). The following files are present to define the job:
-```yaml
-├── mg5_step1.dat         # Definition of the MadGraph process
-├── mg5_step2_templ.dat   # Configuration for launching a MadGraph process. $1, $2, etc., serve as placeholders for parameters from a given list
-├── mg5_params.dat        # Parameter list to replace $1, $2, etc.
-└── py8.dat               # Pythia8 data file
-```
-
-## Delphes step
-
-The Delphes step is configured by a Delphes card. Three Delphes cards are provided in `delphes_cards`, which are derived from the CMS detector conditions in Run 2/3, adding track smearing as done in the JetClass-I production [[JetClass Delphes card]](https://github.com/jet-universe/jetclass_generation/blob/main/delphes_card.tcl), and emulating pileup with $<\mu>=$50, mitigating the PU with the PUPPI algorithm.
-
-The three JetClass-II Delphes cards have gradually increasing content and computational costs:
-
-| Delphes card | Description |
-| --- | --- |
-| **[`delphes_card_CMS_JetClassII_onlyFatJet.tcl`](delphes_cards/delphes_card_CMS_JetClassII_onlyFatJet.tcl)** | This data card only produces large-*R* jets `JetPUPPIAK8`, `JetPUPPIAK15` and the corresponding GEN-jets `GenJetAK8`, `GenJetAK15`. |
-| **[`delphes_card_CMS_JetClassII_lite.tcl`](delphes_cards/delphes_card_CMS_JetClassII_lite.tcl)** | This data card also perserves small-*R* jets `JetPUPPI` (with *R*=0.4) and other event-level objects, including `Electron`, `Muon`, `Photon`, `PuppiMissingET`, etc. |
-| **[`delphes_card_CMS_JetClassII.tcl`](delphes_cards/delphes_card_CMS_JetClassII.tcl)** | This data card includes consistent information as in the nominal CMS card, also including the CHS jets with different radii: `Jet`, `JetAK8`, and `JetAK15`. |
-
-## Produce ntuples from Delphes
-
-Enter `delphes_analyzers`, compile, and run the `makeNtuples.C` macro to convert a Delphes file into ntuples. The ntuple is jet-based, with its branch definition available [here](https://github.com/jet-universe/sophon?tab=readme-ov-file#variable-details).
-
-The following example works on EL9 machines.
+Minimal commands:
 
 ```bash
-# Setup environment
+cd jetclass2_generation
+# edit run.sh once: MG5_PATH, DELPHES_PATH, OUTPUT_PATH, LHAPDFCONFIG, LHAPDF_DATA_PATH, PYTHIA8DATA
+./run.sh jetclass2/train_zz 100000 100 0
+```
 
+Important runtime notes:
+
+- `num_tot_events` must be divisible by `num_events_per_gen_step`.
+- Output ROOT files are written to `${OUTPUT_PATH}/[process_name]/events_delphes_[job_num].root`.
+- The current Higgs-like configs sample one random line from `mg5_params.dat` for each generation batch.
+- `run.sh` creates a temporary work directory under `${OUTPUT_PATH}` and removes it after a successful job.
+
+### Included process configurations
+
+| Process | Command example | Notes |
+| --- | --- | --- |
+| `jetclass2/train_higgs2p` | `./run.sh jetclass2/train_higgs2p 100000 100 [job_num]` | Neutral resonance pair prototype |
+| `jetclass2/train_higgspm2p` | `./run.sh jetclass2/train_higgspm2p 100000 100 [job_num]` | Charged resonance pair prototype |
+| `jetclass2/train_higgs4p` | `./run.sh jetclass2/train_higgs4p 100000 100 [job_num]` | 4-parton resonance prototype |
+| `jetclass2/train_qcd` | `./run.sh jetclass2/train_qcd 100000 100 [job_num]` | Pythia8-only QCD production |
+| `jetclass2/train_zz` | `./run.sh jetclass2/train_zz 100000 100 [job_num]` | Standard Model `pp -> ZZ` prototype at 13.6 TeV with MadSpin Z decays |
+
+## How process configs are structured
+
+A MadGraph+Pythia config directory may contain:
+
+```text
+mg5_step1.dat         # MadGraph process definition
+mg5_step2_templ.dat   # MadGraph launch commands, with $NEVENT/$SEED placeholders
+mg5_params.dat        # Optional parameter scan file; one line is sampled per batch
+py8.dat               # Pythia8 card used by MG5aMC_PY8_interface
+```
+
+The default wrapper is `gen_configs/run_gen_default.sh`.
+
+## New `pp -> ZZ` prototype
+
+The prototype configuration is located in:
+
+```text
+gen_configs/jetclass2/train_zz
+```
+
+It uses:
+
+- `import model sm`
+- `generate p p > z z`
+- `set ebeam1 6800` and `set ebeam2 6800` for 13.6 TeV proton-proton collisions
+- `set lhaid 315000` (NNPDF3.1 LO via LHAPDF)
+- `madspin=ON` with a dedicated MadSpin card in `mg5_step2_madspin_card_templ.dat`
+- Z decays configured in MadSpin with leptonic and hadronic channels (`z -> l+ l-` and `z -> q q~`) rather than in the Pythia card
+
+This makes it a simple starting point for LHC diboson studies on top of the existing JetClass-II workflow.
+
+## Produce ntuples from Delphes output
+
+The Delphes analyzer lives in `delphes_analyzers`.
+
+```bash
+cd jetclass2_generation/delphes_analyzers
 source /cvmfs/sft.cern.ch/lcg/views/LCG_104/x86_64-el9-gcc13-opt/setup.sh
 export ROOT_INCLUDE_PATH=$ROOT_INCLUDE_PATH:/cvmfs/sft.cern.ch/lcg/releases/delphes/3.5.1pre09-9fe9c/x86_64-el9-gcc13-opt/include
 
-# Compile and run macro
 root -b -q 'makeNtuples.C++("events_delphes_higgs2p_example.root", "out.root", "JetPUPPIAK8", "GenJetAK8", true)'
+```
 
-## defination: 
-##  void makeNtuples(TString inputFile, TString outputFile, TString jetBranch = "JetPUPPIAK8", TString genjetBranch = "GenJetAK8", bool assignQCDLabel = false, bool debug = false)
+Macro signature:
+
+```cpp
+void makeNtuples(TString inputFile,
+                 TString outputFile,
+                 TString jetBranch = "JetPUPPIAK8",
+                 TString genjetBranch = "GenJetAK8",
+                 bool assignQCDLabel = false,
+                 bool debug = false)
 ```

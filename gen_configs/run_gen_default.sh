@@ -42,6 +42,11 @@ if [ -f mg5_step2_run_card_templ.dat ]; then
     cp -f mg5_step2_run_card_templ.dat $MDIR/Cards/run_card.dat
 fi
 
+# if mg5_step2_madspin_card_templ exists, copy it to the MG dir
+if [ -f mg5_step2_madspin_card_templ.dat ]; then
+    cp -f mg5_step2_madspin_card_templ.dat $MDIR/Cards/madspin_card.dat
+fi
+
 ## generate MG events
 rm -rf $MDIR/Events/*
 cat mg5_step2.dat | $MDIR/bin/generate_events pilotrun
@@ -54,4 +59,9 @@ fi
 
 # run pythia
 rm -f events.hepmc
+if grep -qi '^Main:numberOfEvents' py8.dat; then
+    sed -Ei "s|^Main:numberOfEvents[[:space:]]*=.*$|Main:numberOfEvents      = $NEVENT|I" py8.dat
+else
+    echo "Main:numberOfEvents      = $NEVENT" >> py8.dat
+fi
 LD_LIBRARY_PATH=$MG5_PATH/HEPTools/lib:$LD_LIBRARY_PATH $MG5_PATH/HEPTools/MG5aMC_PY8_interface/MG5aMC_PY8_interface py8.dat

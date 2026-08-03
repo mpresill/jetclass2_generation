@@ -1,0 +1,6 @@
+set max_weight_ps_point 400
+set spinmode onshell
+
+decay z{0} > l+ l-
+decay z{0} > j j 
+launch
