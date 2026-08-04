@@ -125,22 +125,6 @@ cd jetclass2_generation
 ./run.sh jetclass2/train_zz 100 50 0
 ```
 
-### Run 3 quick recipe (`jetclass2/train_zz`)
-
-The `jetclass2/train_zz` config in this repository is already set for:
-
-- 13.6 TeV proton-proton collisions (`ebeam1=6800`, `ebeam2=6800`)
-- NNPDF3.1 LO (`lhaid=315000`)
-- MadSpin Z decays (configured in `mg5_step2_madspin_card_templ.dat`)
-
-Minimal commands:
-
-```bash
-cd jetclass2_generation
-# edit run.sh once: MG5_PATH, DELPHES_PATH, OUTPUT_PATH, LHAPDFCONFIG, LHAPDF_DATA_PATH, PYTHIA8DATA
-./run.sh jetclass2/train_zz 100000 100 0
-```
-
 Important runtime notes:
 
 - `num_tot_events` must be divisible by `num_events_per_gen_step`.
@@ -170,25 +154,6 @@ py8.dat               # Pythia8 card used by MG5aMC_PY8_interface
 ```
 
 The default wrapper is `gen_configs/run_gen_default.sh`.
-
-## New `pp -> ZZ` prototype
-
-The prototype configuration is located in:
-
-```text
-gen_configs/jetclass2/train_zz
-```
-
-It uses:
-
-- `import model sm`
-- `generate p p > z z`
-- `set ebeam1 6800` and `set ebeam2 6800` for 13.6 TeV proton-proton collisions
-- `set lhaid 315000` (NNPDF3.1 LO via LHAPDF)
-- `madspin=ON` with a dedicated MadSpin card in `mg5_step2_madspin_card_templ.dat`
-- Z decays configured in MadSpin with leptonic and hadronic channels (`z -> l+ l-` and `z -> q q~`) rather than in the Pythia card
-
-This makes it a simple starting point for LHC diboson studies on top of the existing JetClass-II workflow.
 
 ## Produce ntuples from Delphes output
 
